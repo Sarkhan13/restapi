@@ -1,9 +1,12 @@
 from rest_framework import serializers
-from myapi.models import Post
+from myapi.models import Post,Author
+from datetime import datetime
+from django.utils.timesince import timesince
 
 
 class Postserializers(serializers.ModelSerializer):
     timesince_field = serializers.SerializerMethodField()
+    # author = serializers.StringRelatedField()
 
 
     class Meta:
@@ -13,7 +16,10 @@ class Postserializers(serializers.ModelSerializer):
         # exclude = ['title']
 
     def get_timesince_field(self,obj):
-        pass
+        now = datetime.now()
+        pub_date = obj.updateddate
+        interval = timesince(pub_date, now)
+        return interval
 
     
     # object level validate
@@ -33,6 +39,12 @@ class Postserializers(serializers.ModelSerializer):
         if views < 0:
             raise serializers.ValidationError('Views sayi menfi ola bilmez')
 
+class Authorserializers(serializers.ModelSerializer):
+    # posts = Postserializers(many=True,read_only=True)
+    posts = serializers.HyperlinkedRelatedField(many=True, read_only=True,view_name='apidetail',lookup_field='id')
+    class Meta:
+        model= Author
+        fields = '__all__'
 
 # class Postserializers(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
